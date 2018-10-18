@@ -1,5 +1,5 @@
-APP = app/noc_test4
-ARCH = mips/plasma
+APP = app/noc_test_debug
+ARCH = riscv/hf-riscv
 
 CPU_ARCH = \"$(ARCH)\"
 MAX_TASKS = 30

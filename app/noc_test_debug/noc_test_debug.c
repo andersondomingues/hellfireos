@@ -1,6 +1,12 @@
 #include <hellfire.h>
 #include <noc.h>
 
+void idle(void){
+
+	while(1);
+
+}
+
 void sender(void)
 {
 	int32_t msg = 0;
@@ -42,7 +48,9 @@ void app_main(void)
 {
 	if (hf_cpuid() == 0){
 		hf_spawn(sender, 0, 0, 0, "xsender", 4096);
-	}else{
+	}else if (hf_cpuid() == 8){
 		hf_spawn(receiver, 0, 0, 0, "xreceiver", 4096);
+	}else{
+		hf_spawn(idle, 0, 0, 0, "xidle", 4096);
 	}
 }
