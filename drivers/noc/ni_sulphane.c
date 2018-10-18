@@ -48,10 +48,6 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 {
 	//printf whole package
 	int k = 0;
-	print("OUTPCKT: 0x%h\n", buf[0]);
-	for(k = 1; i < pkt_size; k++){
-		print("OUTPCKT: 0x%h\n", *buf[k]);
-	}
 	
 	//holds until previous operation finishes
 	while(ni_ready());

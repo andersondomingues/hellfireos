@@ -20,7 +20,9 @@ void sender(void)
 
 	while (1){
 		sprintf(buf, "i am cpu %d, thread %d: msg %d size: %d\n", hf_cpuid(), hf_selfid(), msg++, sizeof(buf));
-		val = hf_send(3, 5000, buf, sizeof(buf), 0);
+		
+		//send buf data to core 8
+		val = hf_send(8, 5000, buf, sizeof(buf), 0);
 		if (val)
 			printf("hf_send(): error %d\n", val);
 	}
