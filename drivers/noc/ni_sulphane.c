@@ -46,17 +46,26 @@ int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 
 int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 {
-	//printf whole package
-	int k = 0;
+	int i;
 	
 	//holds until previous operation finishes
 	while(ni_ready());
 	
 	//populate buffer
 	uint16_t* send_addr = (uint16_t*)(NI_WRITE_ADDR);
+
+	hexdump(buf, pkt_size);
 	
-	int i = 0;
-	for(; i < pkt_size; i++) send_addr[i] = buf[i];
+	
+	memcpy(send_addr, buf, NI_PACKET_SIZE);
+	//copy buf to the packet mem area
+	//for(i = 0; i < pkt_size; i++) 
+		//send_addr[i] = buf[i];
+
+	hexdump(send_addr, pkt_size);
+	printf("\n");
+
+	while(1);
 
 	//raise INTR
 	uint8_t* comm_intr_ptr = (uint8_t*)COMM_NOC_START;
