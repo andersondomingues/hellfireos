@@ -1,7 +1,10 @@
 #define NI_PACKET_SIZE 64 /* 1 packet = 64 flits */
 
-#define NI_WRITE_ADDR 0x3FFFFF80
-#define NI_READ_ADDR  0x3FFFFF00
+//#define NI_WRITE_ADDR 0x3FFFFF80
+//#define NI_READ_ADDR  0x3FFFFF00
+#define NI_READ_ADDR  0x90000000
+#define NI_WRITE_ADDR 0x90000080
+
 
 #define COMM_NOC_ACK    0x80000001
 #define COMM_NOC_INTR   0x80000002
@@ -22,7 +25,7 @@ int32_t ni_ready(void)
 int32_t ni_flush(uint16_t pkt_size)
 {	
 	//clean auxiliary ram mem2. Please note that mem1 is ready-only.
-	memset((uint16_t*)NI_WRITE_ADDR, 0, sizeof(uint16_t) * NI_PACKET_SIZE);
+	memset((uint16_t*)(NI_WRITE_ADDR), 0, sizeof(uint16_t) * NI_PACKET_SIZE);
 	
 	//no reason for failing.
 	return 1;
@@ -37,7 +40,7 @@ int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 		buf[i] = recv_addr[i];
 	
 	//raise ACK
-	uint8_t* comm_ack_ptr = (uint8_t*)COMM_NOC_ACK;
+	uint8_t* comm_ack_ptr = (uint8_t*)(COMM_NOC_ACK);
 	*comm_ack_ptr = 0x1;
 	
 	//no reason for failing	
@@ -54,18 +57,13 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 	//populate buffer
 	uint16_t* send_addr = (uint16_t*)(NI_WRITE_ADDR);
 
-	hexdump(buf, pkt_size);
-	
-	
-	memcpy(send_addr, buf, NI_PACKET_SIZE);
 	//copy buf to the packet mem area
-	//for(i = 0; i < pkt_size; i++) 
-		//send_addr[i] = buf[i];
-
+	for(i = 0; i < pkt_size; i++) 
+		send_addr[i] = buf[i];
+	
 	hexdump(send_addr, pkt_size);
-	printf("\n");
 
-	while(1);
+	printf("\n");
 
 	//raise INTR
 	uint8_t* comm_intr_ptr = (uint8_t*)COMM_NOC_START;
