@@ -122,6 +122,7 @@ void ni_isr(void *arg)
 				kprintf("\nKERNEL: task (on port %d) queue full! dropping packet...", buf_ptr[PKT_TARGET_PORT]);
 				hf_queue_addtail(pktdrv_queue, buf_ptr);
 			}
+			//hexdump(buf_ptr, NOC_PACKET_SIZE * 2);
 		}else{
 			kprintf("\nKERNEL: no task on port %d (offender: cpu %d port %d) - dropping packet...", buf_ptr[PKT_TARGET_PORT], buf_ptr[PKT_SOURCE_CPU], buf_ptr[PKT_SOURCE_PORT]);
 			hf_queue_addtail(pktdrv_queue, buf_ptr);

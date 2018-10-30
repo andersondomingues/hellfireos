@@ -10,7 +10,7 @@ void idle(void){
 void sender(void)
 {
 	int32_t msg = 0;
-	int8_t buf[1500];
+	int8_t buf[2000];
 	int16_t val;
 
 	if (hf_comm_create(hf_selfid(), 1000, 0))
@@ -30,15 +30,15 @@ void sender(void)
 
 void receiver(void)
 {
-	int8_t buf[1500];
-	uint16_t cpu, task, size;
+	int8_t buf[2000];
+	uint16_t cpu, tsk, size;
 	int16_t val;
 
 	if (hf_comm_create(hf_selfid(), 5000, 0))
 		panic(0xff);
 
 	while (1){
-		val = hf_recv(&cpu, &task, buf, &size, 0);
+		val = hf_recv(&cpu, &tsk, buf, &size, 0);
 		if (val)
 			printf("hf_recv(): error %d\n", val);
 		else
