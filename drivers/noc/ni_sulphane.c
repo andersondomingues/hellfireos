@@ -23,13 +23,12 @@ int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 	//copy packet from aux memory to main memory
 	for(i = 0; i < pkt_size; i++)
 		buf[i] = recv_addr[i];
+
+	hexdump(buf, NI_PACKET_SIZE);
 	
 	//raise ACK
 	COMM_ACK = 0x1;
-
-	hexdump(buf, NI_PACKET_SIZE * 2);
-	//wait INTR to down (unecessarily)
-	while(COMM_INTR);
+	while(COMM_ACK); //wait for netif to ack (why is it necessary?)
 	
 	return 0;
 }
@@ -48,9 +47,7 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 	for(i = 0; i < pkt_size; i++)
 		send_addr[i] = buf[i];
 	
-	//printf("packet send...\n");
-	//hexdump(send_addr, pkt_size);
-	//printf("\n");
+	hexdump(send_addr, NI_PACKET_SIZE);
 	
 	//raise START so packets can be pushed to the router
 	COMM_START = 0x1;
@@ -71,5 +68,6 @@ int32_t ni_flush(uint16_t pkt_size)
 	//memset((uint16_t*)(NI_SEND_ADDR), 0, sizeof(uint16_t) * NI_PACKET_SIZE);
 	
 	//no reason for failing.
-	ni_ready();
+	//ni_ready();
+	return 1;
 }

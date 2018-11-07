@@ -29,7 +29,7 @@ void sender(void)
 
 void receiver(void)
 {
-	int8_t buf[2000];
+	int8_t buf[100];
 	uint16_t cpu, tsk, size;
 	int16_t val;
 
@@ -51,7 +51,8 @@ void app_main(void)
 		hf_spawn(sender, 0, 0, 0, "xsender", 4096);
 	}else if (hf_cpuid() == 8){
 		hf_spawn(receiver, 0, 0, 0, "xreceiver", 4096);
-	}//else{
+	}
+	//else{
 	//	hf_spawn(idle, 0, 0, 0, "xidle", 4096);
 	//}
 }
