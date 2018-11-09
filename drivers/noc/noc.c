@@ -107,9 +107,12 @@ void ni_isr(void *arg)
 
 	buf_ptr = hf_queue_remhead(pktdrv_queue);
 	if (buf_ptr) {
+		
 		ni_read_packet(buf_ptr, NOC_PACKET_SIZE);
+		hexdump(buf_ptr, NOC_PACKET_SIZE);
 
 		if (buf_ptr[PKT_PAYLOAD] != NOC_PACKET_SIZE - 2){
+			kprintf("\nKERNEL: unknown error for task (on port %d)...", buf_ptr[PKT_TARGET_PORT]);
 			hf_queue_addtail(pktdrv_queue, buf_ptr);
 			return;
 		}
@@ -122,7 +125,7 @@ void ni_isr(void *arg)
 				kprintf("\nKERNEL: task (on port %d) queue full! dropping packet...", buf_ptr[PKT_TARGET_PORT]);
 				hf_queue_addtail(pktdrv_queue, buf_ptr);
 			}
-			//hexdump(buf_ptr, NOC_PACKET_SIZE * 2);
+			
 		}else{
 			kprintf("\nKERNEL: no task on port %d (offender: cpu %d port %d) - dropping packet...", buf_ptr[PKT_TARGET_PORT], buf_ptr[PKT_SOURCE_CPU], buf_ptr[PKT_SOURCE_PORT]);
 			hf_queue_addtail(pktdrv_queue, buf_ptr);

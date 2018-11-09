@@ -18,12 +18,16 @@ void sender(void)
 	delay_ms(50);
 
 	while (1){
+		
 		sprintf(buf, "i am cpu %d, thread %d: msg %d size: %d\n", hf_cpuid(), hf_selfid(), msg++, sizeof(buf));
+		printf("app: sent message #%d\n", msg);
 		
 		//send buf data to core 8
 		val = hf_send(8, 5000, buf, sizeof(buf), 0);
 		if (val)
 			printf("hf_send(): error %d\n", val);
+			
+		delay_ms(50);
 	}
 }
 

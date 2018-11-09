@@ -24,7 +24,7 @@ int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 	for(i = 0; i < pkt_size; i++)
 		buf[i] = recv_addr[i];
 
-	hexdump(buf, NI_PACKET_SIZE);
+	//hexdump(buf, NI_PACKET_SIZE);
 	
 	//raise ACK
 	COMM_ACK = 0x1;
@@ -47,7 +47,7 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 	for(i = 0; i < pkt_size; i++)
 		send_addr[i] = buf[i];
 	
-	hexdump(send_addr, NI_PACKET_SIZE);
+	//hexdump(send_addr, NI_PACKET_SIZE);
 	
 	//raise START so packets can be pushed to the router
 	COMM_START = 0x1;
