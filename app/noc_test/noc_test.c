@@ -4,7 +4,7 @@
 void sender(void)
 {
 	int32_t msg = 0;
-	int8_t buf[1500];
+	int8_t buf[150];
 	int16_t val;
 
 	if (hf_comm_create(hf_selfid(), 1000, 0))
@@ -22,7 +22,7 @@ void sender(void)
 
 void receiver(void)
 {
-	int8_t buf[1500];
+	int8_t buf[500];
 	uint16_t cpu, task, size;
 	int16_t val;
 
@@ -40,9 +40,9 @@ void receiver(void)
 
 void app_main(void)
 {
-	if (hf_cpuid() == 0){
-		hf_spawn(sender, 0, 0, 0, "xsender", 4096);
+	if (hf_cpuid() == 2){
+		hf_spawn(sender, 0, 0, 0, "sender", 4096);
 	}else{
-		hf_spawn(receiver, 0, 0, 0, "xreceiver", 4096);
+		hf_spawn(receiver, 0, 0, 0, "receiver", 4096);
 	}
 }
