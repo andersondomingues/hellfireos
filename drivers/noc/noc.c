@@ -111,8 +111,7 @@ void ni_isr(void *arg)
 	if (buf_ptr) {
 		
 		ni_read_packet(buf_ptr, NOC_PACKET_SIZE);
-		hexdump(buf_ptr, NOC_PACKET_SIZE);
-
+		
 		if (buf_ptr[PKT_PAYLOAD] != NOC_PACKET_SIZE - 2){
 			kprintf("\nKERNEL: unknown error for task (on port %d)...", buf_ptr[PKT_TARGET_PORT]);
 			hf_queue_addtail(pktdrv_queue, buf_ptr);

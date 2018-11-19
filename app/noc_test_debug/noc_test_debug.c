@@ -27,7 +27,11 @@ void sender(void)
 		if (val)
 			printf("hf_send(): error %d\n", val);
 			
-		delay_ms(50);
+		val = hf_send(4, 5000, buf, sizeof(buf), 0);
+		if (val)
+			printf("hf_send(): error %d\n", val);
+			
+		delay_ms(1);
 	}
 }
 
@@ -53,7 +57,7 @@ void app_main(void)
 {
 	if (hf_cpuid() == 0){
 		hf_spawn(sender, 0, 0, 0, "xsender", 4096);
-	}else if (hf_cpuid() == 8){
+	}else if (hf_cpuid() == 8 || hf_cpuid() == 4){
 		hf_spawn(receiver, 0, 0, 0, "xreceiver", 4096);
 	}
 	//else{

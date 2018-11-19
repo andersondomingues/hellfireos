@@ -6,12 +6,12 @@ MEMORY
 {
 send	: ORIGIN = 0x3FFFFF00, LENGTH = 128B
 recv	: ORIGIN = 0x3FFFFF80, LENGTH = 128B
-ram		: ORIGIN = 0x40000000, LENGTH = 2M	/* RAM area. */
+ram		: ORIGIN = 0x40000000, LENGTH = 4M	/* RAM area. */
 }
 
 /* define a global symbol _stack  */
 
-_stack = 0x40200000;
+_stack = 0x40400000;
 
 /* now define the output sections  */
 
