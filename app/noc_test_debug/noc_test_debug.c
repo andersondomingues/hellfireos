@@ -20,6 +20,7 @@ void sender(void)
 	while (1){
 		
 		sprintf(buf, "i am cpu %d, thread %d: msg %d size: %d\n", hf_cpuid(), hf_selfid(), msg++, sizeof(buf));
+		
 		printf("app: sent message #%d\n", msg);
 		
 		//send buf data to core 8
@@ -55,12 +56,9 @@ void receiver(void)
 
 void app_main(void)
 {
-	if (hf_cpuid() == 0){
+	if (hf_cpuid() == 0 || hf_cpuid() == 2){
 		hf_spawn(sender, 0, 0, 0, "xsender", 4096);
 	}else if (hf_cpuid() == 8 || hf_cpuid() == 4){
 		hf_spawn(receiver, 0, 0, 0, "xreceiver", 4096);
 	}
-	//else{
-	//	hf_spawn(idle, 0, 0, 0, "xidle", 4096);
-	//}
 }
