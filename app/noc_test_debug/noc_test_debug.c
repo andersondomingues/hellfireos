@@ -24,11 +24,15 @@ void sender(void)
 		printf("app: sent message #%d\n", msg);
 		
 		//send buf data to core 8
-		val = hf_send(8, 5000, buf, sizeof(buf), 0);
+//		val = hf_send(0, 5000, buf, sizeof(buf), 0);
+//		if (val)
+//			printf("hf_send(): error %d\n", val);
+			
+		val = hf_send(13, 5000, buf, sizeof(buf), 0);
 		if (val)
 			printf("hf_send(): error %d\n", val);
-			
-		val = hf_send(4, 5000, buf, sizeof(buf), 0);
+		
+		val = hf_send(0, 5000, buf, sizeof(buf), 0);
 		if (val)
 			printf("hf_send(): error %d\n", val);
 			
@@ -56,9 +60,9 @@ void receiver(void)
 
 void app_main(void)
 {
-	if (hf_cpuid() == 0 || hf_cpuid() == 2){
-		hf_spawn(sender, 0, 0, 0, "xsender", 4096);
-	}else if (hf_cpuid() == 8 || hf_cpuid() == 4){
-		hf_spawn(receiver, 0, 0, 0, "xreceiver", 4096);
+	if (hf_cpuid() == 3){
+		hf_spawn(sender, 0, 0, 0, "sender", 4096);
+	}else{ // if (hf_cpuid() == 0 || hf_cpuid() == 3 || hf_cpuid() == 5){
+		hf_spawn(receiver, 0, 0, 0, "receiver", 4096);
 	}
 }
