@@ -1,44 +1,8 @@
 #include <hellfire.h>
 #include <noc.h>
 
-void idle(void){
-
-	while(1);
-}
-
-void sender(void)
-{
-	int32_t msg = 0;
-	int8_t buf[120];
-	int16_t val;
-
-	if (hf_comm_create(hf_selfid(), 1000, 0))
-		panic(0xff);
-
-	delay_ms(50);
-
-	while (1){
-		
-		sprintf(buf, "i am cpu %d, thread %d: msg %d size: %d\n", hf_cpuid(), hf_selfid(), msg++, sizeof(buf));
-		
-		printf("app: sent message #%d\n", msg);
-		
-		//send buf data to core 8
-//		val = hf_send(0, 5000, buf, sizeof(buf), 0);
-//		if (val)
-//			printf("hf_send(): error %d\n", val);
-			
-//		val = hf_send(13, 5000, buf, sizeof(buf), 0);
-//		if (val)
-//			printf("hf_send(): error %d\n", val);
-		
-		val = hf_send(0, 5000, buf, sizeof(buf), 0);
-		if (val)
-			printf("hf_send(): error %d\n", val);
-			
-		delay_ms(1);
-	}
-}
+unsigned int packet_counter = 0;
+unsigned int max_val = 0;
 
 void receiver(void)
 {
@@ -59,30 +23,53 @@ void receiver(void)
 						
 		}else{
 			
-			printf("%s\n", buf);
+			packet_counter = (packet_counter + 1) % 316;
 			
-			int32_t x = *(int32_t*)(&buf[0]);
-			int32_t y = *(int32_t*)(&buf[4]);
-			int32_t z = *(int32_t*)(&buf[8]);
+			if(packet_counter == 0){
+				
+				//print best value obtained from the 
+				//burst and reset counters
+				
+				//send best acquired value
+				//through the network
+//				val = hf_send(0, 5000, buf, sizeof(buf), 0);
+//			
+//				if (val)
+//					printf("hf_send(): error %d\n", val);
+				
+				max_val = 0;
+			}else{
+				
+				//store the max obtained value
+				//among the burst
+				if(buf[5] > max_val)
+					max_val = buf[5];
+			}
 			
-			printf("x = %d, y = %d, z = %d\n", x, y, z);
+			printf("max_val = %d, counter is %d\n", max_val, packet_counter);
+			
+//			printf("%s\n", buf);			
+			
+//			printf("%s\n", buf);
+			
+//			char f = buf[5];
+			
+			
+//			hexdump(buf, 100);			
 			
 			//answer back
-			val = hf_send(0, 5000, buf, sizeof(buf), 0);
-			
-			if (val)
-				printf("hf_send(): error %d\n", val);
+//			val = hf_send(0, 5000, buf, sizeof(buf), 0);
+//			
+//			if (val)
+//				printf("hf_send(): error %d\n", val);
 
-			delay_ms(1);		
+//			delay_ms(1);		
 		}
 	}
 }
 
 void app_main(void)
 {
-//	if (hf_cpuid() == 2){
-//		hf_spawn(sender, 0, 0, 0, "sender", 4096);
-//	}else{ // if (hf_cpuid() == 0 || hf_cpuid() == 3 || hf_cpuid() == 5){
+	//spawn receivers for all PE (use hf_cpuid() to discriminate)
 	hf_spawn(receiver, 0, 0, 0, "receiver", 4096);
-//	}
 }
