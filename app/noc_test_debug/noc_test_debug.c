@@ -2,7 +2,8 @@
 #include <noc.h>
 
 unsigned int packet_counter = 0;
-unsigned int max_val = 0;
+int max_val = 0;
+int max_index = 0;
 
 void receiver(void)
 {
@@ -23,7 +24,8 @@ void receiver(void)
 						
 		}else{
 			
-			packet_counter = (packet_counter + 1) % 316;
+//			318 * 2 =  636 rays, only even ones are sent
+			packet_counter = (packet_counter + 1) % 318;
 			
 			if(packet_counter == 0){
 				
@@ -38,15 +40,19 @@ void receiver(void)
 //					printf("hf_send(): error %d\n", val);
 				
 				max_val = 0;
+				max_index = 0;
 			}else{
 				
 				//store the max obtained value
 				//among the burst
-				if(buf[5] > max_val)
+				if(buf[5] > max_val){
 					max_val = buf[5];
+					max_index = buf[9];
+				}
+					
 			}
 			
-			printf("max_val = %d, counter is %d\n", max_val, packet_counter);
+			printf("max_val = %d, index = %d, counter is %d\n", max_val, max_index, packet_counter);
 			
 //			printf("%s\n", buf);			
 			
