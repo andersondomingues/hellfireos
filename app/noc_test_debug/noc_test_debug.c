@@ -23,7 +23,8 @@ void receiver(void)
 		if (!val){
 			
 			//318 * 2 =  636 rays, only even ones are sent
-			packet_counter = (packet_counter + 1) % 318;
+			//packet_counter = (packet_counter + 1) % 318;
+			packet_counter = (packet_counter + 1) % 53;
 			
 			//limit of packets reach, rr
 			if(packet_counter == 0){
@@ -32,6 +33,15 @@ void receiver(void)
 				//TODO: integer multiplication not working				
 				printf("max_val = %d, index = %d\n",
 					max_val, max_index);
+				
+				//pack the most far range 
+				*(uint16_t*)&buf[0] = max_index;
+				*(uint16_t*)&buf[2] = max_val;
+				
+				//send back the packet
+				val = hf_send(0, 5000, buf, sizeof(buf), 5000);
+				if (val)
+					printf("hf_send(): error %d\n", val);
 				
 				//reset obtained values and start over
 				max_val = 0;
@@ -44,13 +54,13 @@ void receiver(void)
 
 //				hexdump(buf, 100);
 
-				int16_t index = *(int16_t*)&buf[0];
+				uint16_t index = *(uint16_t*)&buf[0];
 				index = (index >> 8) | ((index & 0x0F )<< 8);
 				
 				uint16_t range = *(uint16_t*)&buf[2];
 				range = (range >> 8) | ((range & 0x0F )<< 8);
 				
-//				printf("%d = %d\n", index, range);
+				//printf("%d = %d\n", index, range);
 
 				if(range > max_val){
 					max_val = range;
