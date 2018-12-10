@@ -24,19 +24,19 @@ void receiver(void)
 			
 			//318 * 2 =  636 rays, only even ones are sent
 			//packet_counter = (packet_counter + 1) % 318;
-			packet_counter = (packet_counter + 1) % 53;
+			packet_counter = (packet_counter + 1) % 52;
 			
 			//limit of packets reach, rr
 			if(packet_counter == 0){
-				
+
 				//TODO: integer division not working
 				//TODO: integer multiplication not working				
-				printf("max_val = %d, index = %d\n",
-					max_val, max_index);
-				
-				//pack the most far range 
-				*(uint16_t*)&buf[0] = max_index;
-				*(uint16_t*)&buf[2] = max_val;
+				printf("index = %d, max_val = %d\n",
+					max_index, max_val);
+								
+				uint16_t* buf16 = (uint16_t*)buf;
+				buf16[0] = max_index;
+				buf16[1] = max_val;
 				
 				//send back the packet
 				val = hf_send(0, 5000, buf, sizeof(buf), 5000);
