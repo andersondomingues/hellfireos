@@ -1,4 +1,4 @@
-APP = app/noc_test_debug
+APP = app/noc_test_mcl
 ARCH = riscv/hf-riscv
 
 CPU_ARCH = \"$(ARCH)\"

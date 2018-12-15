@@ -7,6 +7,11 @@
 #define MAP_W		1792
 #define MAP_H		1700
 
+#define DISTANCE_VECTOR	1
+#define MAP_VALUES		2
+#define MAP_REQUEST		3
+#define WEIGHT_REPONSE	4
+
 struct Particle {
 	int16_t w; //weight
 	int16_t x;
