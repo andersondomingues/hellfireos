@@ -29,7 +29,7 @@
  * The platform should include the following macros:
  *
  * NOC_INTERCONNECT			intra-chip interconnection type
- * CPU_ID				a unique sequential number for each core
+ * CPU_ID				a unique sequential number for each core (unused, see hf_cpuid(void))
  * NOC_WIDTH				number of columns of the 2D mesh
  * NOC_HEIGHT				number of rows of the 2D mesh
  * NOC_PACKET_SIZE			packet size (in 16 bit flits)
@@ -40,6 +40,8 @@
 #include <noc.h>
 #include <ni.h>
 #include <ni_generic.h>
+
+#define COMM_NOC_ID (int8_t*)(0x80000010)
 
 /**
  * @brief NoC driver: initializes the network interface.
@@ -55,7 +57,7 @@ void ni_init(void)
 	int32_t i;
 	void *ptr;
 
-	kprintf("\nKERNEL: this is core #%d", CPU_ID);
+	kprintf("\nKERNEL: this is core #%d", hf_cpuid());
 	kprintf("\nKERNEL: NoC queue init, %d packets", NOC_PACKET_SLOTS);
 
 	pktdrv_queue = hf_queue_create(NOC_PACKET_SLOTS);
@@ -108,7 +110,7 @@ void ni_isr(void *arg)
 			return;
 		}
 
-		if (buf_ptr[PKT_TARGET_CPU] != ((NOC_COLUMN(CPU_ID) << 4) | NOC_LINE(CPU_ID))){
+		if (buf_ptr[PKT_TARGET_CPU] != ((NOC_COLUMN(hf_cpuid()) << 4) | NOC_LINE(hf_cpuid()))){
 			kprintf("\nKERNEL: hardware error: this is not CPU X:%d Y:%d", (buf_ptr[PKT_TARGET_CPU] & 0xf0) >> 4, buf_ptr[PKT_TARGET_CPU] & 0xf);
 			hf_queue_addtail(pktdrv_queue, buf_ptr);
 			return;
@@ -154,7 +156,9 @@ void ni_isr(void *arg)
  */
 uint16_t hf_cpuid(void)
 {
-	return CPU_ID;
+	//return CPU_ID
+	uint16_t id = *COMM_NOC_ID;
+	return id;
 }
 
 /**
