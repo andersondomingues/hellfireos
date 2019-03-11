@@ -10,7 +10,7 @@ void sender(void)
 	
 	if (hf_comm_create(hf_selfid(), 1000, 0))
 		panic(0xff);
-		
+
 	delay_ms(50);
 	
 	srand(hf_cpuid());
@@ -18,14 +18,21 @@ void sender(void)
 	// generate a unique channel number for this CPU
 	channel = hf_cpuid();
 	while (1){
+
 		for (i = 0; i < sizeof(buf)-4; i++)
 			buf[i] = random() % 255;
+			
 		crc = hf_crc32(buf, sizeof(buf)-4);
 		memcpy(buf+sizeof(buf)-4, &crc, 4);
 		val = hf_send(2, 5000, buf, sizeof(buf), channel);
+
 		if (val)
 			printf("hf_send(): error %d\n", val);
+		else
+			printf("hf_send(): channel=%d\n", channel);
+			
 		delay_ms(10);
+			
 	}
 }
 
@@ -49,6 +56,7 @@ void receiver(void)
 			} else {
 				memcpy(&crc, buf+size-4, 4);
 				printf("cpu %d, port %d, channel %d, size %d, crc %08x [free queue: %d]", cpu, port, i, size, crc, hf_queue_count(pktdrv_queue));
+
 				if (hf_crc32(buf, size-4) == crc)
 					printf(" (CRC32 pass)\n");
 				else
@@ -60,9 +68,14 @@ void receiver(void)
 
 void app_main(void)
 {
-	if (hf_cpuid() == 2){
-		hf_spawn(receiver, 0, 0, 0, "receiver", 4096);
-	}else{
-		hf_spawn(sender, 0, 0, 0, "sender", 4096);
+	switch(hf_cpuid()){
+	//	case 2:
+		case 5:
+		case 15:
+			hf_spawn(sender, 0, 0, 0, "sender", 4096);			
+			break;
+		default:
+			hf_spawn(receiver, 0, 0, 0, "receiver", 4096);		
+			break;
 	}
 }

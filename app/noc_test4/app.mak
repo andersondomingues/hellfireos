@@ -1,4 +1,4 @@
-APP_DIR = $(SRC_DIR)/$(APP)
+APP_DIR = $(SRC_DIR)/../applications/$(APP)
 
 app: kernel
 	$(CC) $(CFLAGS) \
