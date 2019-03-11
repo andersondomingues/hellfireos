@@ -34,14 +34,14 @@ void mcl_slave(void)
 		if (val){
 			printf("hf_recv(): error %d\n", val);
 		}else{
-
+			printf("distance vector received\n");
 			for(i = 0; i < NUM_SAMPLES; i++){
-				distance[i] = buf[4+i*2] << 8 | buf[5+i*2];
+				distance[i] = buf[6+i*2] << 8 | buf[5+i*2];
 			}
 
-			p.x 	= buf[4+i*2] << 8 | buf[5+i*2]; i++;
-			p.y 	= buf[4+i*2] << 8 | buf[5+i*2]; i++;
-			p.theta = buf[4+i*2] << 8 | buf[5+i*2];
+			p.x 	= buf[6+i*2] << 8 | buf[5+i*2]; i++;
+			p.y 	= buf[6+i*2] << 8 | buf[5+i*2]; i++;
+			p.theta = buf[6+i*2] << 8 | buf[5+i*2];
 
 			int32_t ptheta = itofix(p.theta);
 			int32_t px = MAP_W/2 + p.x;
@@ -51,11 +51,12 @@ void mcl_slave(void)
 				int32_t sx = fixtoi(fix_cos(ptheta + angles[i]) * distance[i] + px*FIX_ONE);
 				int32_t sy = fixtoi(fix_sin(ptheta + angles[i]) * distance[i] + py*FIX_ONE);
 
-				buf[i*4]   = sx & 0x00ff;
-				buf[i*4+1] = (sx & 0xff00) >> 8;
-				buf[i*4+2] = sy & 0x00ff;
-				buf[i*4+3] = (sy & 0xff00) >> 8;
+				buf[i*4+2]  = sx & 0x00ff;
+				buf[i*4+3] = (sx & 0xff00) >> 8;
+				buf[i*4+4] = sy & 0x00ff;
+				buf[i*4+5] = (sy & 0xff00) >> 8;
 			}
+			buf[0] = MAP_REQUEST;
 			val = hf_send(0, 5000, buf, 64, 0);
 
 			val = hf_recv(&cpu, &tsk, buf, &size, 0);
@@ -66,11 +67,12 @@ void mcl_slave(void)
 				int32_t sx = fixtoi(fix_cos(ptheta + angles[i+NUM_SAMPLES/2]) * distance[i+NUM_SAMPLES/2] + px*FIX_ONE);
 				int32_t sy = fixtoi(fix_sin(ptheta + angles[i+NUM_SAMPLES/2]) * distance[i+NUM_SAMPLES/2] + py*FIX_ONE);
 
-				buf[i*4]   = sx & 0x00ff;
-				buf[i*4+1] = (sx & 0xff00) >> 8;
-				buf[i*4+2] = sy & 0x00ff;
-				buf[i*4+3] = (sy & 0xff00) >> 8;
+				buf[i*4+2]   = sx & 0x00ff;
+				buf[i*4+3] = (sx & 0xff00) >> 8;
+				buf[i*4+4] = sy & 0x00ff;
+				buf[i*4+5] = (sy & 0xff00) >> 8;
 			}
+			buf[0] = MAP_REQUEST;
 			val = hf_send(0, 5000, buf, 64, 0);
 
 			val = hf_recv(&cpu, &tsk, buf, &size, 0);
@@ -80,6 +82,13 @@ void mcl_slave(void)
 			prob = FIX_ONE;
 			for(i = 0; i < NUM_SAMPLES; i++)
 				prob = fix_mul(itofix(256 - map_val[i]), prob);
+
+			buf[0] = WEIGHT_REPONSE;
+			buf[3] = (prob & 0x000000ff);
+			buf[2] = (prob & 0x0000ff00) >> 8;
+			buf[5] = (prob & 0x00ff0000) >> 16;
+			buf[4] = (prob & 0xff000000) >> 24;
+			val = hf_send(0, 5000, buf, 6, 0);
 
 			printf("prob = %d\n", prob);
 		}
