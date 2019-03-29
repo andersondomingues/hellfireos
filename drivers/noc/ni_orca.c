@@ -34,12 +34,11 @@ int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 	//raise ACK
 	*comm_noc_ack = 0x1;
 	
-	//printf("INTR = %x\n", *COMM_NOC_INTR);
-	//printf("ACK  = %x\n", *COMM_NOC_ACK);
+	//hexdump(buf, NI_PACKET_SIZE);
+	//printf("->\n");
 	
 	//wait for interruption to go low
 	while(*comm_noc_intr == 0x1); 
-	//printf("loweeddd\n");
 	
 	//lowers ack and proceed
 	*comm_noc_ack = 0x0; 
@@ -63,10 +62,11 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 	//print content
 	//hexdump(buf, NI_PACKET_SIZE);
 	//printf("\n");
+	//printf("\n");
 	
 	//raise START so packets can be pushed to the router
 	*comm_noc_start = 0x1;
-	
+		
 	return 0;
 }
 
