@@ -64,6 +64,8 @@ SECTIONS
 		. = ALIGN(4);
 		_bss_end = . ;
 	} > ram
+
+	_end = .;
 	
 	.tasks :
 	{
@@ -72,7 +74,6 @@ SECTIONS
 		*.tasks*
 	} > ram
 	
-	_etasks = .;	
-	_end = .;
+	_etasks = .;
 }
 
