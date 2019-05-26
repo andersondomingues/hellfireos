@@ -1,3 +1,6 @@
+#ifndef _CONDVAR_H
+#define _CONDVAR_H
+
 /**
  * @brief Condition variable data structure.
  */
@@ -13,3 +16,5 @@ int32_t hf_conddestroy(cond_t *c);
 void hf_condwait(cond_t *c, mutex_t *m);
 void hf_condsignal(cond_t *c);
 void hf_condbroadcast(cond_t *c);
+
+#endif

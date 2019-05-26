@@ -1,3 +1,6 @@
+#ifndef _LIBC_H
+#define _LIBC_H
+
 #include <stdarg.h>
 
 /*
@@ -115,3 +118,5 @@ union double_long {
 	} l;
 	long long ll;
 };
+
+#endif

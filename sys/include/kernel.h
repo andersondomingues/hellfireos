@@ -1,3 +1,6 @@
+#ifndef _KERNEL_H
+#define _KERNEL_H
+
 /**
  * @file kernel.h
  * @author Sergio Johann Filho
@@ -74,3 +77,5 @@ struct queue *krnl_rt_queue;				/*!< pointer to a queue of real time tasks */
 struct queue *krnl_event_queue;				/*!< pointer to a queue of tasks waiting for an event */
 uint8_t krnl_heap[HEAP_SIZE];				/*!< contiguous heap memory area to be used as a memory pool. the memory allocator (malloc() and free()) controls this data structure */
 uint32_t krnl_free;					/*!< amount of free heap memory, in bytes */
+
+#endif

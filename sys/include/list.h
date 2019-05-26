@@ -1,3 +1,6 @@
+#ifndef _LIST_H
+#define _LIST_H
+
 /**
  * @brief List data structure.
  */
@@ -13,3 +16,5 @@ int32_t hf_list_remove(struct list *lst, int32_t pos);
 void *hf_list_get(struct list *lst, int32_t pos);
 int32_t hf_list_set(struct list *lst, void *item, int32_t pos);
 int32_t hf_list_count(struct list *lst);
+
+#endif

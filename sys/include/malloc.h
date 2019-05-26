@@ -14,6 +14,9 @@
  * Data structures of several memory allocators.
  * 
  */
+#ifndef _MALLOC_H
+#define _MALLOC_H
+
 
 #if MEM_ALLOC == 0
 typedef struct{
@@ -72,3 +75,5 @@ void *hf_malloc(uint32_t size);
 void heapinit(void *heap, uint32_t len);
 void *hf_calloc(uint32_t qty, uint32_t type_size);
 void *hf_realloc(void *ptr, uint32_t size);
+
+#endif

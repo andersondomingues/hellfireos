@@ -1,3 +1,6 @@
+#ifndef _MUTEX_H
+#define _MUTEX_H
+
 #if MUTEX_TYPE == 0
 /**
  * @brief Mutex data structure.
@@ -21,3 +24,5 @@ typedef volatile struct mtx mutex_t;
 void hf_mtxinit(mutex_t *m);
 void hf_mtxlock(mutex_t *m);
 void hf_mtxunlock(mutex_t *m);
+
+#endif
