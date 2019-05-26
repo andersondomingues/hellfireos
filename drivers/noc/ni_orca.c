@@ -78,7 +78,19 @@ int32_t ni_ready(void)
 }
 
 int32_t ni_flush(uint16_t pkt_size)
-{	
-	//no reason to flush
+{
+	volatile int8_t*   comm_noc_ack  = COMM_NOC_ACK;
+	volatile int8_t*   comm_noc_intr = COMM_NOC_INTR;
+	
+	//raise ACK
+	*comm_noc_ack = 0x1;
+	
+	//wait for interruption to go low
+	while(*comm_noc_intr == 0x1); 
+	
+	//lowers ack and proceed
+	*comm_noc_ack = 0x0; 
+
+	//no reason to fail...
 	return 1;
 }
