@@ -15,4 +15,12 @@
 #define PANIC_NUTS_SEM			0x0d
 #define PANIC_UNKNOWN			0xff
 
+#ifdef CPP
+extern "C" {
+#endif
+
 void panic(int32_t cause);
+
+#ifdef CPP
+}
+#endif

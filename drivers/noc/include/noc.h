@@ -58,6 +58,10 @@ int32_t (*pktdrv_callback)(uint16_t *buf);
 void ni_init(void);
 void ni_isr(void *arg);
 
+#ifdef CPP
+extern "C" {
+#endif
+
 uint16_t hf_cpuid(void);
 uint16_t hf_ncores(void);
 int32_t hf_comm_create(uint16_t id, uint16_t port, uint16_t packets);
@@ -68,3 +72,7 @@ int32_t hf_send(uint16_t target_cpu, uint16_t target_port, int8_t *buf, uint16_t
 int32_t hf_recvack(uint16_t *source_cpu, uint16_t *source_port, int8_t *buf, uint16_t *size, uint16_t channel);
 int32_t hf_sendack(uint16_t target_cpu, uint16_t target_port, int8_t *buf, uint16_t size, uint16_t channel, uint32_t timeout);
 // hf_request(), hf_reply()
+
+#ifdef CPP
+}
+#endif

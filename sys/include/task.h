@@ -1,3 +1,7 @@
+#ifdef CPP
+extern "C" {
+#endif
+
 int32_t hf_id(int8_t *name);
 int8_t *hf_name(uint16_t id);
 uint16_t hf_selfid(void);
@@ -13,3 +17,7 @@ int32_t hf_block(uint16_t id);
 int32_t hf_resume(uint16_t id);
 int32_t hf_kill(uint16_t id);
 int32_t hf_delay(uint16_t id, uint32_t delay);
+
+#ifdef CPP
+}
+#endif

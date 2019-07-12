@@ -1,6 +1,8 @@
 #ifndef _DRONE_LIB_HF_H
 #define _DRONE_LIB_HF_H
 
+#include <hellfire.h>
+
 typedef struct {
 
 	int32_t a;

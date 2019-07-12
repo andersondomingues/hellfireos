@@ -39,6 +39,11 @@ constants, tests and transformations
                   ((((uint32_t)(n) & 0xFF000000)) >> 24))
 #endif
 
+#ifdef CPP
+extern "C" {
+#endif
+
+
 /*
 custom C library
 */
@@ -75,6 +80,11 @@ void *malloc(size_t size);
 void free(void *ptr);
 void *calloc(uint32_t qty, uint32_t type_size);
 void *realloc(void *ptr, uint32_t size);
+
+#ifdef CPP
+}
+#endif
+
 
 /* IEEE single-precision definitions */
 #define SNG_EXPBITS	8

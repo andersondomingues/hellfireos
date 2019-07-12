@@ -22,6 +22,7 @@ LDFLAGS = -melf32lriscv
 LINKER_SCRIPT = $(ARCH_DIR)/hf-riscv.ld
 
 CC = riscv32-unknown-elf-gcc
+CPP = riscv32-unknown-elf-g++
 AS = riscv32-unknown-elf-as
 LD = riscv32-unknown-elf-ld
 DUMP = riscv32-unknown-elf-objdump -Mno-aliases
