@@ -41,7 +41,7 @@
 #include <ni.h>
 #include <ni_generic.h>
 
-#define COMM_NOC_ID (int8_t*)(0x80000010)
+#define COMM_NOC_ID (uint32_t*)(0x403F0010)
 
 /**
  * @brief NoC driver: initializes the network interface.

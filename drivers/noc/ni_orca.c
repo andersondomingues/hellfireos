@@ -1,16 +1,26 @@
 #define NI_PACKET_SIZE 64 /* 1 packet = 64 flits */
 
-#define NI_RECV_ADDR (uint16_t*)(0x90000000) /* mem1 */
-#define NI_SEND_ADDR (uint16_t*)(0x90000080) /* mem2*/
+
+//#define NI_RECV_ADDR (uint16_t*)(0x90000000) /* mem1 */
+#define NI_RECV_ADDR (uint16_t*)(0x403F1000)
+//#define NI_SEND_ADDR (uint16_t*)(0x90000080) /* mem2*/
+#define NI_SEND_ADDR (uint16_t*)(0x403F1080)
 
 //raises when the CPU acknowldge receving a packet. NI lowers.
-#define COMM_NOC_ACK (int8_t*)(0x80000000)
+//#define COMM_NOC_ACK (int8_t*)(0x80000000)
+#define COMM_NOC_ACK (int8_t*)(0x403F0000)
 
 //raises when the NI interrupts the CPU. CPU lowers.
-#define COMM_NOC_INTR (int8_t*)(0x80000001)
+//#define COMM_NOC_INTR (int8_t*)(0x80000001)
+#define COMM_NOC_INTR (int8_t*)(0x403F0001)
 
 //raises when the CPU starts the NI. NI lowers.
-#define COMM_NOC_START (int8_t*)(0x80000002)
+//#define COMM_NOC_START (int8_t*)(0x80000002)
+#define COMM_NOC_START (int8_t*)(0x403F0002)
+
+//@TODO: to be implemented yet.
+//check whether the ni can send another packet
+#define COMM_NOC_STATUS (int8_t*)(0x403F0003)
 
 //raise/lower macroses
 #define RAISE(x) *x=0x1
