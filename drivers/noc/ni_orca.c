@@ -1,10 +1,11 @@
 #define NI_PACKET_SIZE 64 /* 1 packet = 64 flits */
 
-
 //#define NI_RECV_ADDR (uint16_t*)(0x90000000) /* mem1 */
-#define NI_RECV_ADDR (uint16_t*)(0x403F1000)
+//#define NI_RECV_ADDR (uint16_t*)(0x403F1000)
+#define NI_RECV_ADDR (uint16_t*)(0x50000000)
 //#define NI_SEND_ADDR (uint16_t*)(0x90000080) /* mem2*/
-#define NI_SEND_ADDR (uint16_t*)(0x403F1080)
+//#define NI_SEND_ADDR (uint16_t*)(0x403F1080)
+#define NI_SEND_ADDR (uint16_t*)(0x50000080)
 
 //raises when the CPU acknowldge receving a packet. NI lowers.
 //#define COMM_NOC_ACK (int8_t*)(0x80000000)
