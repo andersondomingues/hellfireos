@@ -440,11 +440,13 @@ int32_t hf_send(uint16_t target_cpu, uint16_t target_port, int8_t *buf, uint16_t
 
 	for (i = PKT_HEADER_SIZE; i < NOC_PACKET_SIZE && (p < size); i++, p+=2)
 		out_buf[i] = ((uint8_t)buf[p] << 8) | (uint8_t)buf[p+1];
-	for(; i < NOC_PACKET_SIZE; i++)
-		out_buf[i] = 0xdead;
+	
+	//for(; i < NOC_PACKET_SIZE; i++)
+	//	out_buf[i] = 0xdead;
 
-	ni_write_packet(out_buf, NOC_PACKET_SIZE);
-	delay_ms(1);
+	//ni_write_packet(out_buf, NOC_PACKET_SIZE);
+	ni_write_packet(out_buf, i);
+	//delay_ms(1);
 
 	return ERR_OK;
 }

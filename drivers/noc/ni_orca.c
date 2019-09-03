@@ -30,14 +30,22 @@
 #include <hellfire.h>
 #include <ni_generic.h>
 
+volatile uint16_t* recv_addr     = NI_RECV_ADDR;
+volatile int8_t*   comm_noc_ack  = COMM_NOC_ACK;
+volatile int8_t*   comm_noc_intr = COMM_NOC_INTR;
+
+volatile uint16_t* send_addr = NI_SEND_ADDR;
+volatile int8_t*   comm_noc_start = COMM_NOC_START; 
+
+//volatile int8_t* comm_noc_start = COMM_NOC_START; 
+
+//volatile int8_t*   comm_noc_ack  = COMM_NOC_ACK;
+//volatile int8_t*   comm_noc_intr = COMM_NOC_INTR;
+
 int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 {	
 	int i;
 	
-	volatile uint16_t* recv_addr     = NI_RECV_ADDR;
-	volatile int8_t*   comm_noc_ack  = COMM_NOC_ACK;
-	volatile int8_t*   comm_noc_intr = COMM_NOC_INTR;
-		
 	//copy packet from aux memory to main memory at given addr
 	for(i = 0; i < pkt_size; i++)
 		buf[i] = recv_addr[i];
@@ -60,9 +68,6 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 {
 	int i;
 
-	volatile uint16_t* send_addr = NI_SEND_ADDR;
-	volatile int8_t* comm_noc_start = COMM_NOC_START; 
-
 	//holds until previous operation finishes
 	while(*comm_noc_start == 0x1);
 	
@@ -84,15 +89,11 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 int32_t ni_ready(void)
 {
 	//ready when start is down, other is sending already
-	volatile int8_t* comm_noc_start = COMM_NOC_START; 
 	return (*comm_noc_start);
 }
 
 int32_t ni_flush(uint16_t pkt_size)
 {
-	volatile int8_t*   comm_noc_ack  = COMM_NOC_ACK;
-	volatile int8_t*   comm_noc_intr = COMM_NOC_INTR;
-	
 	//raise ACK
 	*comm_noc_ack = 0x1;
 	
