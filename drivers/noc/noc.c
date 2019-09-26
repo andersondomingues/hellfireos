@@ -39,9 +39,7 @@
 #include <hellfire.h>
 #include <noc.h>
 #include <ni.h>
-#include <ni_generic.h>
-
-#define COMM_NOC_ID (uint32_t*)(0x403F0010)
+#include <ni_orca.h>
 
 /**
  * @brief NoC driver: initializes the network interface.
@@ -102,8 +100,14 @@ void ni_isr(void *arg)
 	uint16_t *buf_ptr;
 
 	buf_ptr = hf_queue_remhead(pktdrv_queue);
+	
 	if (buf_ptr) {
-		ni_read_packet(buf_ptr, NOC_PACKET_SIZE);
+	
+		//Since we know the size of the received packet, we ask the driver to copy
+		//only the necessary bytes. The size of the packet is written by the NI to
+		//the sig_recv_status signal.
+		//COMMENTED OUT >> ni_read_packet(buf_ptr, NOC_PACKET_SIZE);
+		ni_read_packet(buf_ptr, ni_get_next_size());
 
 		if (buf_ptr[PKT_PAYLOAD] != NOC_PACKET_SIZE - 2){
 			hf_queue_addtail(pktdrv_queue, buf_ptr);
@@ -157,7 +161,7 @@ void ni_isr(void *arg)
 uint16_t hf_cpuid(void)
 {
 	//return CPU_ID
-	uint16_t id = *COMM_NOC_ID;
+	uint16_t id = *MAGIC_TILE_ID;
 	return id;
 }
 
@@ -430,7 +434,10 @@ int32_t hf_send(uint16_t target_cpu, uint16_t target_port, int8_t *buf, uint16_t
 	}
 
 	out_buf[PKT_TARGET_CPU] = (NOC_COLUMN(target_cpu) << 4) | NOC_LINE(target_cpu);
-	out_buf[PKT_PAYLOAD] = NOC_PACKET_SIZE - 2;
+
+	//Last packet, which most of the time is the only packet, must have size equals
+	//to the number of flits in the payload plus two, instead of NOC_PACKET_SIZE. 
+	//COMMENTED OUT >> out_buf[PKT_PAYLOAD] = NOC_PACKET_SIZE - 2; 
 	out_buf[PKT_SOURCE_CPU] = hf_cpuid();
 	out_buf[PKT_SOURCE_PORT] = pktdrv_ports[id];
 	out_buf[PKT_TARGET_PORT] = target_port;
@@ -441,12 +448,22 @@ int32_t hf_send(uint16_t target_cpu, uint16_t target_port, int8_t *buf, uint16_t
 	for (i = PKT_HEADER_SIZE; i < NOC_PACKET_SIZE && (p < size); i++, p+=2)
 		out_buf[i] = ((uint8_t)buf[p] << 8) | (uint8_t)buf[p+1];
 	
-	//for(; i < NOC_PACKET_SIZE; i++)
-	//	out_buf[i] = 0xdead;
-
-	//ni_write_packet(out_buf, NOC_PACKET_SIZE);
+	//Actual size of payload fixed here (total data minus the first two flits)
+	out_buf[PKT_PAYLOAD] = i - 2;
+	
+	//We can save some processing time by leaving garbage at the end of the packet.
+	//Since we never read from these addresses, there is no reason to fill them up.
+	//COMMENTED OUT >> for(; i < NOC_PACKET_SIZE; i++)
+	//COMMENTED OUT >>     out_buf[i] = 0xdead;
+	
+	//Here, we configure the NI to send the actual size of data instead of 
+	//a whole packet.
+	//COMMENTED OUT >> ni_write_packet(out_buf, NOC_PACKET_SIZE);
 	ni_write_packet(out_buf, i);
-	//delay_ms(1);
+	
+	//CPU becomes stalled during network operations, so there is no need to hold 
+	//the process.
+	//COMMENTED OUT >> delay_ms(1);
 
 	return ERR_OK;
 }
