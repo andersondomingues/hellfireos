@@ -98,6 +98,7 @@ void ni_isr(void *arg)
 {
 	int32_t k;
 	uint16_t *buf_ptr;
+	uint16_t act_pkt_size;
 
 	buf_ptr = hf_queue_remhead(pktdrv_queue);
 	
@@ -107,9 +108,13 @@ void ni_isr(void *arg)
 		//only the necessary bytes. The size of the packet is written by the NI to
 		//the sig_recv_status signal.
 		//COMMENTED OUT >> ni_read_packet(buf_ptr, NOC_PACKET_SIZE);
-		ni_read_packet(buf_ptr, ni_get_next_size());
+		act_pkt_size = ni_get_next_size();
+		ni_read_packet(buf_ptr, act_pkt_size);
+		
+		//printf("next size is: %d\n", ni_get_next_size());
 
-		if (buf_ptr[PKT_PAYLOAD] != NOC_PACKET_SIZE - 2){
+		//if (buf_ptr[PKT_PAYLOAD] != NOC_PACKET_SIZE - 2){
+		if (buf_ptr[PKT_PAYLOAD] > NOC_PACKET_SIZE - 2){
 			hf_queue_addtail(pktdrv_queue, buf_ptr);
 			return;
 		}
@@ -448,7 +453,7 @@ int32_t hf_send(uint16_t target_cpu, uint16_t target_port, int8_t *buf, uint16_t
 	for (i = PKT_HEADER_SIZE; i < NOC_PACKET_SIZE && (p < size); i++, p+=2)
 		out_buf[i] = ((uint8_t)buf[p] << 8) | (uint8_t)buf[p+1];
 	
-	//Actual size of payload fixed here (total data minus the first two flits)
+	//Actual size of payload fixed here (total data minus the first two flits).
 	out_buf[PKT_PAYLOAD] = i - 2;
 	
 	//We can save some processing time by leaving garbage at the end of the packet.
@@ -464,7 +469,7 @@ int32_t hf_send(uint16_t target_cpu, uint16_t target_port, int8_t *buf, uint16_t
 	//CPU becomes stalled during network operations, so there is no need to hold 
 	//the process.
 	//COMMENTED OUT >> delay_ms(1);
-
+	
 	return ERR_OK;
 }
 

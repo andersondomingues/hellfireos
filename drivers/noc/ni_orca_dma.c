@@ -24,7 +24,7 @@ int32_t ni_get_next_size(){
 
 int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 {	
-	printf("ni read size=%d\n", pkt_size);
+	//printf("ni read size (flits) = %d\n", pkt_size);
 
 	//configure dma 
 	*sig_size = pkt_size;
@@ -38,14 +38,15 @@ int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 	//flag off 
 	*sig_recv = 0x0;
 	
-	hexdump(buf, pkt_size);
+	//hexdump((int8_t*)buf, pkt_size * 2);
+	//printf("\n");
 		
 	return 0; //<<- no reason to fail
 }
 
 int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 {
-	printf("ni write size=%d\n", pkt_size);
+	//printf("ni write size (flits) =%d\n", pkt_size);
 	
 	//wait until previous send to finish
 	while(*sig_send_status == 0x1);
@@ -62,14 +63,15 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 	//flag off 
 	*sig_send = 0x0;
 	
-	hexdump(buf, pkt_size);
+	//hexdump((int8_t*)buf, pkt_size * 2);
+	//printf("\n");
 	
 	return 0; //<<- no reason to fail
 }
 
 int32_t ni_ready(void)
 {
-	printf("ni ready\n");
+	//printf("ni ready\n");
 
 	//ready when start is down, other is sending already
 	return (*sig_send);
@@ -77,16 +79,18 @@ int32_t ni_ready(void)
 
 int32_t ni_flush(uint16_t pkt_size)
 {
-	printf("ni flush\n");
+	//printf("ni flush\n");
 
-	//raise ACK
-	//*comm_noc_ack = 0x1;
+	//configure dma 
+	*sig_size = 0;
+
+	//stall and recv
+	*sig_recv = 0x1;
 	
-	//wait for interruption to go low
-	//while(*comm_noc_intr == 0x1); 
+	//CPU is stalled here, nothing to do
 	
-	//lowers ack and proceed
-	//*comm_noc_ack = 0x0; 
+	//flag off 
+	*sig_recv = 0x0;
 
 	//no reason to fail...
 	return 1;
