@@ -74,7 +74,7 @@ int32_t ni_ready(void)
 	//printf("ni ready\n");
 
 	//ready when start is down, other is sending already
-	return (*sig_send);
+	return (*sig_send_status);
 }
 
 int32_t ni_flush(uint16_t pkt_size)

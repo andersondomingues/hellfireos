@@ -38,7 +38,6 @@
 
 #include <hellfire.h>
 #include <noc.h>
-#include <ni.h>
 #include <ni_orca.h>
 
 /**
@@ -113,11 +112,12 @@ void ni_isr(void *arg)
 		
 		//printf("next size is: %d\n", ni_get_next_size());
 
-		//if (buf_ptr[PKT_PAYLOAD] != NOC_PACKET_SIZE - 2){
-		if (buf_ptr[PKT_PAYLOAD] > NOC_PACKET_SIZE - 2){
-			hf_queue_addtail(pktdrv_queue, buf_ptr);
-			return;
-		}
+		//Since have an arbitrary number of flits per packet, we 
+		//cannot determine packet integrity from its size.
+		//COMMENTED OUT >> if (buf_ptr[PKT_PAYLOAD] != NOC_PACKET_SIZE - 2){
+		//COMMENTED OUT >>     hf_queue_addtail(pktdrv_queue, buf_ptr);
+		//COMMENTED OUT >>     return;
+		//COMMENTED OUT >> }
 
 		if (buf_ptr[PKT_TARGET_CPU] != ((NOC_COLUMN(hf_cpuid()) << 4) | NOC_LINE(hf_cpuid()))){
 			kprintf("\nKERNEL: hardware error: this is not CPU X:%d Y:%d", (buf_ptr[PKT_TARGET_CPU] & 0xf0) >> 4, buf_ptr[PKT_TARGET_CPU] & 0xf);
@@ -125,18 +125,19 @@ void ni_isr(void *arg)
 			return;
 		}
 
-		switch (buf_ptr[PKT_TARGET_PORT]) {
-		case 0x0000:
-			hf_queue_addtail(pktdrv_queue, buf_ptr);
-			return;
-		case 0xffff:
-			if (pktdrv_callback)
-				pktdrv_callback(buf_ptr);
-			hf_queue_addtail(pktdrv_queue, buf_ptr);
-			return;
-		default:
-			break;
-		}
+		//Disabled special ports
+		//COMMENTED OUT >> switch (buf_ptr[PKT_TARGET_PORT]) {
+		//COMMENTED OUT >> case 0x0000:
+		//COMMENTED OUT >>     hf_queue_addtail(pktdrv_queue, buf_ptr);
+		//COMMENTED OUT >>     return;
+		//COMMENTED OUT >> case 0xffff:
+		//COMMENTED OUT >>     if (pktdrv_callback)
+		//COMMENTED OUT >>         pktdrv_callback(buf_ptr);
+		//COMMENTED OUT >>     hf_queue_addtail(pktdrv_queue, buf_ptr);
+		//COMMENTED OUT >>     return;
+		//COMMENTED OUT >> default:
+		//COMMENTED OUT >>     break;
+		//COMMENTED OUT >> }
 
 		for (k = 0; k < MAX_TASKS; k++)
 			if (pktdrv_ports[k] == buf_ptr[PKT_TARGET_PORT]) break;
@@ -385,7 +386,8 @@ int32_t hf_recv(uint16_t *source_cpu, uint16_t *source_port, int8_t *buf, uint16
 	if (buf_ptr[PKT_SEQ] != seq++)
 		error = ERR_SEQ_ERROR;
 
-	for (i = PKT_HEADER_SIZE; i < NOC_PACKET_SIZE && p < *size; i++){
+	//for (i = PKT_HEADER_SIZE; i < NOC_PACKET_SIZE && p < *size; i++){
+	for (i = PKT_HEADER_SIZE; i < buf_ptr[PKT_PAYLOAD] && p < *size; i++){
 		buf[p++] = (uint8_t)(buf_ptr[i] >> 8);
 		buf[p++] = (uint8_t)(buf_ptr[i] & 0xff);
 	}

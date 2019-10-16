@@ -1,4 +1,5 @@
-#define NI_PACKET_SIZE 64 /* 1 packet = 64 flits */
+#define IRQ_NOC_READ 0x100
+#define NI_PACKET_SIZE 64
 
 #define MAGIC_TILE_ID       (uint16_t*)0x403F1000  
 
