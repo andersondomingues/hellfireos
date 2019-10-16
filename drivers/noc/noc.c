@@ -69,7 +69,8 @@ void ni_init(void)
 		hf_queue_addtail(pktdrv_queue, ptr);
 	}
 
-	i = ni_flush(NOC_PACKET_SIZE);
+	//No reason to flush the NI at the startup
+	//COMMENTED OUT >> i = ni_flush(NOC_PACKET_SIZE);
 	if (i){
 		_irq_register(IRQ_NOC_READ, (funcptr)ni_isr);
 		_irq_mask_set(IRQ_NOC_READ);

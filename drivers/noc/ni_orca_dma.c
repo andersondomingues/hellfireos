@@ -10,8 +10,8 @@ volatile int8_t* sig_send  = SIGNAL_PROG_SEND;
 volatile int8_t* sig_recv  = SIGNAL_PROG_RECV;
 
 //signals to check on ni statuses
-volatile int8_t* sig_send_status = SIGNAL_SEND_STATUS;
-volatile int32_t* sig_recv_addr = SIGNAL_RECV_ADDR;
+volatile int8_t*  sig_send_status = SIGNAL_SEND_STATUS;
+volatile int32_t* sig_recv_status = SIGNAL_RECV_ADDR;
 
 //signals to ni programming
 volatile int32_t* sig_addr = SIGNAL_PROG_ADDR;
@@ -19,7 +19,7 @@ volatile int32_t* sig_size = SIGNAL_PROG_SIZE;
 
 
 int32_t ni_get_next_size(){
-	return *sig_recv_addr;
+	return *sig_recv_status;
 }
 
 int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
@@ -40,7 +40,9 @@ int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 	
 	//hexdump((int8_t*)buf, pkt_size * 2);
 	//printf("\n");
-		
+	
+	//printf("recvd %d / %d bytes\n", ni_get_next_size(), *sig_size);
+	
 	return 0; //<<- no reason to fail
 }
 
@@ -50,6 +52,10 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 	
 	//wait until previous send to finish
 	while(*sig_send_status == 0x1);
+
+	//hexdump((int8_t*)buf, pkt_size * 2);
+	//printf("\n");
+	//printf("numbytes = %d\n", pkt_size * 2);
 	
 	//configure dma 
 	*sig_size = pkt_size;
@@ -62,9 +68,6 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 	
 	//flag off 
 	*sig_send = 0x0;
-	
-	//hexdump((int8_t*)buf, pkt_size * 2);
-	//printf("\n");
 	
 	return 0; //<<- no reason to fail
 }
