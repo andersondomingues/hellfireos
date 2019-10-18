@@ -12,14 +12,13 @@ TIME_SLICE=0
 #LDFLAGS_STRIP = 
 
 CFLAGS_STRIP = -fdata-sections -ffunction-sections
-LDFLAGS_STRIP = --gc-sections
+LDFLAGS_STRIP = -print-gc-sections #--gc-sections
 
 # this is stuff used everywhere - compiler and flags should be declared (ASFLAGS, CFLAGS, LDFLAGS, LINKER_SCRIPT, CC, AS, LD, DUMP, READ, OBJ and SIZE).
 # remember the kernel, as well as the application, will be compiled using the *same* compiler and flags!
 ASFLAGS = -march=rv32im -mabi=ilp32 -fPIC
 CFLAGS = -Wall -march=rv32im -mabi=ilp32 -O2 -c -ffreestanding -nostdlib -ffixed-s10 -ffixed-s11 -fomit-frame-pointer $(INC_DIRS) -DCPU_SPEED=${F_CLK} -DTIME_SLICE=${TIME_SLICE} -DLITTLE_ENDIAN $(CFLAGS_STRIP) -DKERN_VER=\"$(KERNEL_VER)\" #-mrvc -fPIC -DDEBUG_PORT -msoft-float -fshort-double
-LDFLAGS = -melf32lriscv 
-#$(LDFLAGS_STRIP)
+LDFLAGS = -melf32lriscv $(LDFLAGS_STRIP)
 LINKER_SCRIPT = $(ARCH_DIR)/hf-riscv.ld
 
 CC = riscv32-unknown-elf-gcc

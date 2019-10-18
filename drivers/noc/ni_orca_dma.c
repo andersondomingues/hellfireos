@@ -17,7 +17,6 @@ volatile int32_t* sig_recv_status = SIGNAL_RECV_ADDR;
 volatile int32_t* sig_addr = SIGNAL_PROG_ADDR;
 volatile int32_t* sig_size = SIGNAL_PROG_SIZE;
 
-
 int32_t ni_get_next_size(){
 	return *sig_recv_status;
 }
