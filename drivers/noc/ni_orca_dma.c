@@ -24,6 +24,7 @@ int32_t ni_get_next_size(){
 int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 {	
 	//printf("ni read size (flits) = %d\n", pkt_size);
+	uint32_t im = _di();
 
 	//configure dma 
 	*sig_size = pkt_size;
@@ -41,12 +42,14 @@ int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 	//printf("\n");
 	
 	//printf("recvd %d / %d bytes\n", ni_get_next_size(), *sig_size);
+	_ei(im);
 	
 	return 0; //<<- no reason to fail
 }
 
 int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 {
+	uint32_t im = _di();
 	//printf("ni write size (flits) =%d\n", pkt_size);
 	
 	//wait until previous send to finish
@@ -68,6 +71,8 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 	//flag off 
 	*sig_send = 0x0;
 	
+	_ei(im);
+
 	return 0; //<<- no reason to fail
 }
 
@@ -81,6 +86,7 @@ int32_t ni_ready(void)
 
 int32_t ni_flush(uint16_t pkt_size)
 {
+	uint32_t im = _di();
 	//printf("ni flush\n");
 
 	//configure dma 
@@ -94,6 +100,7 @@ int32_t ni_flush(uint16_t pkt_size)
 	//flag off 
 	*sig_recv = 0x0;
 
+	_ei(im);
 	//no reason to fail...
 	return 1;
 }
