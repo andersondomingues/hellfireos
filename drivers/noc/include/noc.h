@@ -38,22 +38,22 @@
 /**
  * @brief Array of associations between tasks and reception ports.
  */
-uint16_t pktdrv_ports[MAX_TASKS];
+extern uint16_t pktdrv_ports[MAX_TASKS];
 
 /**
  * @brief Array of queues. Each task can have its own custom sized queue.
  */
-struct queue *pktdrv_tqueue[MAX_TASKS];
+extern struct queue *pktdrv_tqueue[MAX_TASKS];
 
 /**
  * @brief Queue of free (shared) packets. The number of packets is NOC_PACKET_SLOTS.
  */
-struct queue *pktdrv_queue;
+extern struct queue *pktdrv_queue;
 
 /**
  * @brief Callback function pointer. Called when PKT_TARGET_PORT is 0xffff.
  */
-int32_t (*pktdrv_callback)(uint16_t *buf);
+extern int32_t (*pktdrv_callback)(uint16_t *buf);
 
 void ni_init(void);
 void ni_isr(void *arg);
@@ -71,7 +71,6 @@ int32_t hf_recv(uint16_t *source_cpu, uint16_t *source_port, int8_t *buf, uint16
 int32_t hf_send(uint16_t target_cpu, uint16_t target_port, int8_t *buf, uint16_t size, uint16_t channel);
 int32_t hf_recvack(uint16_t *source_cpu, uint16_t *source_port, int8_t *buf, uint16_t *size, uint16_t channel);
 int32_t hf_sendack(uint16_t target_cpu, uint16_t target_port, int8_t *buf, uint16_t size, uint16_t channel, uint32_t timeout);
-// hf_request(), hf_reply()
 
 #ifdef CPP
 }

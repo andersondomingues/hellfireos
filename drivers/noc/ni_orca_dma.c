@@ -23,17 +23,24 @@ int32_t ni_get_next_size(){
 
 int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 {	
-	//printf("ni read size (flits) = %d\n", pkt_size);
 	uint32_t im = _di();
+	//printf("ni read %d flits\n", pkt_size);
 
 	//configure dma 
 	*sig_size = pkt_size;
 	*sig_addr = (int32_t)buf;
 	
+	//if(*sig_addr <= 0x4000675c){
+	//	printf("WTF >> %d\n", *sig_addr);
+	//}
+
+	// printf("ni prog size %d, addr 0x%x\n", *sig_size, *sig_addr);
+	
 	//stall and recv
 	*sig_recv = 0x1;
 	
 	//CPU is stalled here, nothing to do
+	delay_ms(1);
 	
 	//flag off 
 	*sig_recv = 0x0;
@@ -41,7 +48,6 @@ int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 	//hexdump((int8_t*)buf, pkt_size * 2);
 	//printf("\n");
 	
-	//printf("recvd %d / %d bytes\n", ni_get_next_size(), *sig_size);
 	_ei(im);
 	
 	return 0; //<<- no reason to fail
@@ -50,7 +56,12 @@ int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 {
 	uint32_t im = _di();
-	//printf("ni write size (flits) =%d\n", pkt_size);
+	
+	//printf("ni write %d flits\n", pkt_size);
+	
+	//if(*sig_addr <= 0x4000675c){
+	//	printf("WTF >> %d\n", *sig_addr);
+	//}
 	
 	//wait until previous send to finish
 	while(*sig_send_status == 0x1);
@@ -58,15 +69,18 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 	//hexdump((int8_t*)buf, pkt_size * 2);
 	//printf("\n");
 	//printf("numbytes = %d\n", pkt_size * 2);
-	
+
 	//configure dma 
 	*sig_size = pkt_size;
 	*sig_addr = (int32_t)buf;
 	
+	// printf("ni prog size %d, addr 0x%x\n", *sig_size, *sig_addr);
+
 	//stall and send
 	*sig_send = 0x1;
 	
 	//CPU is stalled here, nothing to do
+	delay_ms(1);
 	
 	//flag off 
 	*sig_send = 0x0;
@@ -86,21 +100,26 @@ int32_t ni_ready(void)
 
 int32_t ni_flush(uint16_t pkt_size)
 {
-	uint32_t im = _di();
-	//printf("ni flush\n");
+
+	//printf("ni flush %d flits\n", pkt_size);
+	uint8_t dummy[pkt_size];
 
 	//configure dma 
-	*sig_size = 0;
+	*sig_size = pkt_size;
+	*sig_addr = (int32_t)dummy;
+
+	//printf("ni flush %d, addr 0x%x\n", *sig_size, *sig_addr);
 
 	//stall and recv
 	*sig_recv = 0x1;
 	
-	//CPU is stalled here, nothing to do
+	delay_ms(1);
+	
+	//<---------CPU is stalled here, nothing to do
 	
 	//flag off 
 	*sig_recv = 0x0;
 
-	_ei(im);
 	//no reason to fail...
-	return 1;
+	return pkt_size;
 }

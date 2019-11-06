@@ -4,8 +4,8 @@ ENTRY(_entry)
 
 MEMORY 
 {
-send	: ORIGIN = 0x3FFFFF00, LENGTH = 128B
-recv	: ORIGIN = 0x3FFFFF80, LENGTH = 128B
+/* send	: ORIGIN = 0x3FFFFF00, LENGTH = 128B */
+/* recv	: ORIGIN = 0x3FFFFF80, LENGTH = 128B */
 ram		: ORIGIN = 0x40000000, LENGTH = 4M	/* RAM area. */
 }
 
@@ -67,12 +67,14 @@ SECTIONS
 
 	_end = .;
 	
+/*
 	.tasks :
 	{
 		*(.tasks)
 		*.tasks
 		*.tasks*
 	} > ram
+*/
 	
 	_etasks = .;
 }

@@ -40,6 +40,12 @@
 #include <noc.h>
 #include <ni_orca.h>
 
+//externs
+uint16_t pktdrv_ports[MAX_TASKS];
+struct queue *pktdrv_tqueue[MAX_TASKS];
+struct queue *pktdrv_queue;
+int32_t (*pktdrv_callback)(uint16_t *buf);
+
 /**
  * @brief NoC driver: initializes the network interface.
  *
@@ -69,8 +75,10 @@ void ni_init(void)
 		hf_queue_addtail(pktdrv_queue, ptr);
 	}
 
-	//No reason to flush the NI at the startup
-	//COMMENTED OUT >> i = ni_flush(NOC_PACKET_SIZE);
+	uint32_t im = _di();
+	i = ni_flush(NOC_PACKET_SIZE);
+	_ei(im);
+
 	if (i){
 		_irq_register(IRQ_NOC_READ, (funcptr)ni_isr);
 		_irq_mask_set(IRQ_NOC_READ);
@@ -98,17 +106,21 @@ void ni_isr(void *arg)
 {
 	int32_t k;
 	uint16_t *buf_ptr;
+
 	uint16_t act_pkt_size;
 
 	buf_ptr = hf_queue_remhead(pktdrv_queue);
 	
-	if (buf_ptr) {
+	//get current packet size
+	act_pkt_size = ni_get_next_size();
+	printf("packet size is %d\n", act_pkt_size);
 	
+	if (buf_ptr) {
+
 		//Since we know the size of the received packet, we ask the driver to copy
 		//only the necessary bytes. The size of the packet is written by the NI to
 		//the sig_recv_status signal.
 		//COMMENTED OUT >> ni_read_packet(buf_ptr, NOC_PACKET_SIZE);
-		act_pkt_size = ni_get_next_size();
 		ni_read_packet(buf_ptr, act_pkt_size);
 		
 		//printf("next size is: %d\n", ni_get_next_size());
@@ -126,19 +138,19 @@ void ni_isr(void *arg)
 			return;
 		}
 
-		//Disabled special ports
-		//COMMENTED OUT >> switch (buf_ptr[PKT_TARGET_PORT]) {
-		//COMMENTED OUT >> case 0x0000:
-		//COMMENTED OUT >>     hf_queue_addtail(pktdrv_queue, buf_ptr);
-		//COMMENTED OUT >>     return;
-		//COMMENTED OUT >> case 0xffff:
-		//COMMENTED OUT >>     if (pktdrv_callback)
-		//COMMENTED OUT >>         pktdrv_callback(buf_ptr);
-		//COMMENTED OUT >>     hf_queue_addtail(pktdrv_queue, buf_ptr);
-		//COMMENTED OUT >>     return;
-		//COMMENTED OUT >> default:
-		//COMMENTED OUT >>     break;
-		//COMMENTED OUT >> }
+		// // "special ports"
+		// switch (buf_ptr[PKT_TARGET_PORT]) {
+		// case 0x0000:
+		// 	hf_queue_addtail(pktdrv_queue, buf_ptr);
+		// 	return;
+		// case 0xffff:
+		// 	if (pktdrv_callback)
+		// 		pktdrv_callback(buf_ptr);
+		// 	hf_queue_addtail(pktdrv_queue, buf_ptr);
+		// 	return;
+		// default:
+		// 	break;
+		// }
 
 		for (k = 0; k < MAX_TASKS; k++)
 			if (pktdrv_ports[k] == buf_ptr[PKT_TARGET_PORT]) break;
@@ -154,7 +166,10 @@ void ni_isr(void *arg)
 		}
 	}else{
 		kprintf("\nKERNEL: NoC queue full! dropping packet...");
-		ni_flush(NOC_PACKET_SIZE);
+		
+		uint32_t im = _di();
+		ni_flush(act_pkt_size);
+		_ei(im);
 	}
 
 	return;
@@ -387,8 +402,8 @@ int32_t hf_recv(uint16_t *source_cpu, uint16_t *source_port, int8_t *buf, uint16
 	if (buf_ptr[PKT_SEQ] != seq++)
 		error = ERR_SEQ_ERROR;
 
-	//for (i = PKT_HEADER_SIZE; i < NOC_PACKET_SIZE && p < *size; i++){
-	for (i = PKT_HEADER_SIZE; i < buf_ptr[PKT_PAYLOAD] && p < *size; i++){
+	for (i = PKT_HEADER_SIZE; i < NOC_PACKET_SIZE && p < *size; i++){
+	//for (i = PKT_HEADER_SIZE; i < buf_ptr[PKT_PAYLOAD] && p < *size; i++){
 		buf[p++] = (uint8_t)(buf_ptr[i] >> 8);
 		buf[p++] = (uint8_t)(buf_ptr[i] & 0xff);
 	}
