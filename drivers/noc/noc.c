@@ -102,6 +102,7 @@ void ni_init(void)
  * defined protocols, RPC or remote system calls). Port 0 is used as a discard function, for testing
  * purposes.
  */
+ 
 void ni_isr(void *arg)
 {
 	int32_t k;
@@ -109,11 +110,13 @@ void ni_isr(void *arg)
 
 	uint16_t act_pkt_size;
 
+	//printf("\nqueue: %d\n", hf_queue_count(pktdrv_queue));
+
 	buf_ptr = hf_queue_remhead(pktdrv_queue);
 	
 	//get current packet size
 	act_pkt_size = ni_get_next_size();
-	printf("packet size is %d\n", act_pkt_size);
+	//printf("packet size is %d\n", act_pkt_size);
 	
 	if (buf_ptr) {
 
@@ -121,7 +124,9 @@ void ni_isr(void *arg)
 		//only the necessary bytes. The size of the packet is written by the NI to
 		//the sig_recv_status signal.
 		//COMMENTED OUT >> ni_read_packet(buf_ptr, NOC_PACKET_SIZE);
+		//uint32_t im = _di();
 		ni_read_packet(buf_ptr, act_pkt_size);
+		//_ei(im);
 		
 		//printf("next size is: %d\n", ni_get_next_size());
 
@@ -138,19 +143,19 @@ void ni_isr(void *arg)
 			return;
 		}
 
-		// // "special ports"
-		// switch (buf_ptr[PKT_TARGET_PORT]) {
-		// case 0x0000:
-		// 	hf_queue_addtail(pktdrv_queue, buf_ptr);
-		// 	return;
-		// case 0xffff:
-		// 	if (pktdrv_callback)
-		// 		pktdrv_callback(buf_ptr);
-		// 	hf_queue_addtail(pktdrv_queue, buf_ptr);
-		// 	return;
-		// default:
-		// 	break;
-		// }
+		// "special ports"
+		switch (buf_ptr[PKT_TARGET_PORT]) {
+		case 0x0000:
+			hf_queue_addtail(pktdrv_queue, buf_ptr);
+			return;
+		case 0xffff:
+			if (pktdrv_callback)
+				pktdrv_callback(buf_ptr);
+			hf_queue_addtail(pktdrv_queue, buf_ptr);
+			return;
+		default:
+			break;
+		}
 
 		for (k = 0; k < MAX_TASKS; k++)
 			if (pktdrv_ports[k] == buf_ptr[PKT_TARGET_PORT]) break;
@@ -166,10 +171,7 @@ void ni_isr(void *arg)
 		}
 	}else{
 		kprintf("\nKERNEL: NoC queue full! dropping packet...");
-		
-		uint32_t im = _di();
 		ni_flush(act_pkt_size);
-		_ei(im);
 	}
 
 	return;
@@ -338,6 +340,8 @@ int32_t hf_recv(uint16_t *source_cpu, uint16_t *source_port, int8_t *buf, uint16
 	int32_t i, k, p = 0, error = ERR_OK;
 	uint16_t *buf_ptr;
 
+	//printf("hf_recv: 0x%x\n", (uint32_t)buf);
+
 	id = hf_selfid();
 	if (pktdrv_tqueue[id] == NULL) return ERR_COMM_UNFEASIBLE;
 
@@ -402,11 +406,13 @@ int32_t hf_recv(uint16_t *source_cpu, uint16_t *source_port, int8_t *buf, uint16
 	if (buf_ptr[PKT_SEQ] != seq++)
 		error = ERR_SEQ_ERROR;
 
+	//TODO: treat endianess up to the size of the packet
 	for (i = PKT_HEADER_SIZE; i < NOC_PACKET_SIZE && p < *size; i++){
 	//for (i = PKT_HEADER_SIZE; i < buf_ptr[PKT_PAYLOAD] && p < *size; i++){
 		buf[p++] = (uint8_t)(buf_ptr[i] >> 8);
 		buf[p++] = (uint8_t)(buf_ptr[i] & 0xff);
 	}
+	
 	status = _di();
 	hf_queue_addtail(pktdrv_queue, buf_ptr);
 	_ei(status);
@@ -482,7 +488,9 @@ int32_t hf_send(uint16_t target_cpu, uint16_t target_port, int8_t *buf, uint16_t
 	//Here, we configure the NI to send the actual size of data instead of 
 	//a whole packet.
 	//COMMENTED OUT >> ni_write_packet(out_buf, NOC_PACKET_SIZE);
+	uint32_t im = _di();
 	ni_write_packet(out_buf, i);
+	_ei(im);
 	
 	//CPU becomes stalled during network operations, so there is no need to hold 
 	//the process.

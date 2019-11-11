@@ -18,10 +18,13 @@ void _irq_handler(uint32_t cause, uint32_t *stack)
 {
 	int32_t i = 0;
 	
+	
+	
 #if KERNEL_LOG >= 1
 	dprintf("irq%x %d ", cause, (uint32_t)_read_us());
 #endif
 	krnl_pcb.interrupts++;
+		
 	do {
 		if (cause & 0x1){
 			if(isr[i]){
