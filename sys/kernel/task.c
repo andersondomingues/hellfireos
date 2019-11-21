@@ -428,7 +428,7 @@ int32_t hf_kill(uint16_t id)
 	struct tcb_entry *krnl_task2;
 
 #if KERNEL_LOG == 2
-	dprintf("hf_kill() %d ", (uint32_t)_read_us());
+	dprintf("hf_kill() %d\n", (uint32_t)_read_us());
 #endif
 	status = _di();
 	if (id == 0){

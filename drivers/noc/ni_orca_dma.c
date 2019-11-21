@@ -3,23 +3,20 @@
 #include <noc.h>
 
 //cpu-specific signals
-volatile int8_t* sig_stall = SIGNAL_CPU_STALL;
-volatile int8_t* sig_intr  = SIGNAL_CPU_INTR;
+volatile uint8_t* sig_stall = SIGNAL_CPU_STALL;
+volatile uint8_t* sig_intr  = SIGNAL_CPU_INTR;
 
 //signals to start the ni
-volatile int8_t* sig_send  = SIGNAL_PROG_SEND;
-volatile int8_t* sig_recv  = SIGNAL_PROG_RECV;
+volatile uint8_t* sig_send  = SIGNAL_PROG_SEND;
+volatile uint8_t* sig_recv  = SIGNAL_PROG_RECV;
 
 //signals to check on ni statuses
-volatile int8_t*  sig_send_status = SIGNAL_SEND_STATUS;
-volatile int32_t* sig_recv_status = SIGNAL_RECV_ADDR;
+volatile uint8_t*  sig_send_status = SIGNAL_SEND_STATUS;
+volatile uint32_t* sig_recv_status = SIGNAL_RECV_ADDR;
 
 //signals to ni programming
-volatile int32_t* sig_addr = SIGNAL_PROG_ADDR;
-volatile int32_t* sig_size = SIGNAL_PROG_SIZE;
-
-//memory place to flush unused data
-uint8_t ni_flush_dummy[NI_PACKET_SIZE];
+volatile uint32_t* sig_addr = SIGNAL_PROG_ADDR;
+volatile uint32_t* sig_size = SIGNAL_PROG_SIZE;
 
 //get the size of the next packet 
 int32_t ni_get_next_size(){
@@ -34,7 +31,9 @@ int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 
 	//configure dma 
 	*sig_size = pkt_size;
-	*sig_addr = (int32_t)buf;
+	*sig_addr = (uint32_t)buf;
+	
+	//printf("addr => 0x%x | 0x%x\n", (int32_t)buf, (int32_t)&(buf[0]));
 	
 	//if(*sig_addr <= 0x4000675c){
 	//	printf("WTF >> %d\n", *sig_addr);
@@ -46,17 +45,18 @@ int32_t ni_read_packet(uint16_t *buf, uint16_t pkt_size)
 	//stall and recv
 	*sig_recv = 0x1;
 	
-	//CPU is stalled here, nothing to do
-	//delay_ms(1);
+	//hold the cpu until no size is given
+	while(*sig_recv_status != 0x0);
 	
 	//flag off 
 	*sig_recv = 0x0;
-	
+
 	//printf("----\n");
 	//hexdump((int8_t*)buf, pkt_size * 2);
 	//printf("\n");
 	
 	//_ei(im);
+	//delay_ms(2);
 	
 	//printf("out: %d\n", packet_counter_driver_lala++);
 	
@@ -83,11 +83,13 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 
 	//configure dma 
 	*sig_size = pkt_size;
-	*sig_addr = (int32_t)buf;
+	*sig_addr = (uint32_t)buf;
 	
 	// printf("ni prog size %d, addr 0x%x\n", *sig_size, *sig_addr);
-
 	//stall and send
+	*sig_send = 0x1;
+	*sig_send = 0x1;
+	*sig_send = 0x1;
 	*sig_send = 0x1;
 	
 	//CPU is stalled here, nothing to do
@@ -95,8 +97,12 @@ int32_t ni_write_packet(uint16_t *buf, uint16_t pkt_size)
 	
 	//flag off 
 	*sig_send = 0x0;
+	*sig_send = 0x0;
+	*sig_send = 0x0;
+	*sig_send = 0x0;
 	
 	//_ei(im);
+	//delay_ms(2);
 
 	return 0; //<<- no reason to fail
 }
@@ -109,6 +115,9 @@ int32_t ni_ready(void)
 	return (*sig_send_status);
 }
 
+//memory place to flush unused data
+uint8_t ni_flush_dummy[NI_PACKET_SIZE * sizeof(uint16_t)];
+
 int32_t ni_flush(uint16_t pkt_size)
 {
 	//uint32_t im = _di();
@@ -117,7 +126,7 @@ int32_t ni_flush(uint16_t pkt_size)
 
 	//configure dma 
 	*sig_size = pkt_size;
-	*sig_addr = (int32_t)ni_flush_dummy;
+	*sig_addr = (uint32_t)ni_flush_dummy;
 
 	//*sig_size = 0;
 
@@ -126,9 +135,7 @@ int32_t ni_flush(uint16_t pkt_size)
 	//stall and recv
 	*sig_recv = 0x1;
 
-	//delay_ms(1);
-	
-	//<---------CPU is stalled here, nothing to do
+	while(*sig_recv_status != 0x0); 	//<---------CPU is stalled here, nothing to do
 	
 	//flag off 
 	*sig_recv = 0x0;

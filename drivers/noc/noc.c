@@ -73,6 +73,7 @@ void ni_init(void)
 		ptr = hf_malloc(sizeof(int16_t) * NOC_PACKET_SIZE);
 		if (ptr == NULL) panic(PANIC_OOM);
 		hf_queue_addtail(pktdrv_queue, ptr);
+		//printf("malloc => 0x%x\n", ptr);
 	}
 
 	uint32_t im = _di();
@@ -108,67 +109,58 @@ void ni_isr(void *arg)
 	int32_t k;
 	uint16_t *buf_ptr;
 
-	uint16_t act_pkt_size;
+	//Since we know the size of the received packet, we ask the driver to copy only 
+	//the necessary bytes. The size of the packet is written by the NI to the 
+	//sig_recv_status signal (see drv). We need to know the size of the packet before
+	//receiving it, so it can be flushed case no more room is available
+	uint16_t act_pkt_size = ni_get_next_size();
 
-	//printf("\nqueue: %d\n", hf_queue_count(pktdrv_queue));
-
+	//get an slot from the global queue
 	buf_ptr = hf_queue_remhead(pktdrv_queue);
-	
-	//get current packet size
-	act_pkt_size = ni_get_next_size();
-	//printf("packet size is %d\n", act_pkt_size);
-	
+
+	//if slot is valid (is NULL when no slot can be acquired)
 	if (buf_ptr) {
 
 		//Since we know the size of the received packet, we ask the driver to copy
 		//only the necessary bytes. The size of the packet is written by the NI to
-		//the sig_recv_status signal.
-		//COMMENTED OUT >> ni_read_packet(buf_ptr, NOC_PACKET_SIZE);
-		//uint32_t im = _di();
+		//the sig_recv_status signal (see drv).
 		ni_read_packet(buf_ptr, act_pkt_size);
-		//_ei(im);
-		
-		//printf("next size is: %d\n", ni_get_next_size());
 
-		//Since have an arbitrary number of flits per packet, we 
+		//Since have an arbitrary number of flits per packet, we !!!!!!!!!!!!!!
 		//cannot determine packet integrity from its size.
 		//COMMENTED OUT >> if (buf_ptr[PKT_PAYLOAD] != NOC_PACKET_SIZE - 2){
 		//COMMENTED OUT >>     hf_queue_addtail(pktdrv_queue, buf_ptr);
 		//COMMENTED OUT >>     return;
 		//COMMENTED OUT >> }
 
+		//get rid of packets which address is not the same of this cpu
 		if (buf_ptr[PKT_TARGET_CPU] != ((NOC_COLUMN(hf_cpuid()) << 4) | NOC_LINE(hf_cpuid()))){
 			kprintf("\nKERNEL: hardware error: this is not CPU X:%d Y:%d", (buf_ptr[PKT_TARGET_CPU] & 0xf0) >> 4, buf_ptr[PKT_TARGET_CPU] & 0xf);
 			hf_queue_addtail(pktdrv_queue, buf_ptr);
 			return;
 		}
 
-		// "special ports"
-		switch (buf_ptr[PKT_TARGET_PORT]) {
-		case 0x0000:
-			hf_queue_addtail(pktdrv_queue, buf_ptr);
-			return;
-		case 0xffff:
-			if (pktdrv_callback)
-				pktdrv_callback(buf_ptr);
-			hf_queue_addtail(pktdrv_queue, buf_ptr);
-			return;
-		default:
-			break;
-		}
-
+		//get the queue associated to the port indicated in the packet
 		for (k = 0; k < MAX_TASKS; k++)
 			if (pktdrv_ports[k] == buf_ptr[PKT_TARGET_PORT]) break;
 
+		//check whether some task is running for that port
 		if (k < MAX_TASKS && krnl_tcb[k].ptask){
+		
+			//check whether the task has room for more packets in that queue
 			if (hf_queue_addtail(pktdrv_tqueue[k], buf_ptr)){
 				kprintf("\nKERNEL: task (on port %d) queue full! dropping packet...", buf_ptr[PKT_TARGET_PORT]);
 				hf_queue_addtail(pktdrv_queue, buf_ptr);
 			}
+			
+		//no task is running for that port, return the buffer to the global queue
+		//and drop the packet.
 		}else{
 			kprintf("\nKERNEL: no task on port %d (offender: cpu %d port %d) - dropping packet...", buf_ptr[PKT_TARGET_PORT], buf_ptr[PKT_SOURCE_CPU], buf_ptr[PKT_SOURCE_PORT]);
 			hf_queue_addtail(pktdrv_queue, buf_ptr);
 		}
+
+	//no more space in the global queue, flush
 	}else{
 		kprintf("\nKERNEL: NoC queue full! dropping packet...");
 		ni_flush(act_pkt_size);
@@ -359,6 +351,8 @@ int32_t hf_recv(uint16_t *source_cpu, uint16_t *source_port, int8_t *buf, uint16
 		}
 	}
 
+	//printf("queue size: 0x%x\n", hf_queue_count(pktdrv_tqueue[id]);
+
 	status = _di();
 	buf_ptr = hf_queue_remhead(pktdrv_tqueue[id]);
 	_ei(status);
@@ -407,8 +401,8 @@ int32_t hf_recv(uint16_t *source_cpu, uint16_t *source_port, int8_t *buf, uint16
 		error = ERR_SEQ_ERROR;
 
 	//TODO: treat endianess up to the size of the packet
-	for (i = PKT_HEADER_SIZE; i < NOC_PACKET_SIZE && p < *size; i++){
-	//for (i = PKT_HEADER_SIZE; i < buf_ptr[PKT_PAYLOAD] && p < *size; i++){
+	//for (i = PKT_HEADER_SIZE; i < NOC_PACKET_SIZE && p < *size; i++){
+	for (i = PKT_HEADER_SIZE; i < buf_ptr[PKT_PAYLOAD] + 1 && p < *size; i++){
 		buf[p++] = (uint8_t)(buf_ptr[i] >> 8);
 		buf[p++] = (uint8_t)(buf_ptr[i] & 0xff);
 	}
@@ -488,9 +482,9 @@ int32_t hf_send(uint16_t target_cpu, uint16_t target_port, int8_t *buf, uint16_t
 	//Here, we configure the NI to send the actual size of data instead of 
 	//a whole packet.
 	//COMMENTED OUT >> ni_write_packet(out_buf, NOC_PACKET_SIZE);
-	uint32_t im = _di();
+	//uint32_t im = _di();
 	ni_write_packet(out_buf, i);
-	_ei(im);
+	//_ei(im);
 	
 	//CPU becomes stalled during network operations, so there is no need to hold 
 	//the process.

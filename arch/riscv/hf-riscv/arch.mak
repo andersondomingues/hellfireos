@@ -2,8 +2,8 @@
 ARCH_DIR = $(SRC_DIR)/arch/$(ARCH)
 INC_DIRS  = -I $(ARCH_DIR)/include
 
-#F_CLK=25000000
-F_CLK=2000000
+F_CLK=25000000
+#F_CLK=2000000
 TIME_SLICE=0
 
 #remove unreferenced functions
@@ -17,7 +17,7 @@ LDFLAGS_STRIP = -print-gc-sections #--gc-sections
 # this is stuff used everywhere - compiler and flags should be declared (ASFLAGS, CFLAGS, LDFLAGS, LINKER_SCRIPT, CC, AS, LD, DUMP, READ, OBJ and SIZE).
 # remember the kernel, as well as the application, will be compiled using the *same* compiler and flags!
 ASFLAGS = -march=rv32im -mabi=ilp32 -fPIC
-CFLAGS = -Wall -march=rv32im -mabi=ilp32 -O2 -c -ffreestanding -nostdlib -ffixed-s10 -ffixed-s11 \
+CFLAGS = -Wall -march=rv32im -mabi=ilp32 -c -O2 -ffreestanding -nostdlib -ffixed-s10 -ffixed-s11 \
 		 -fomit-frame-pointer $(INC_DIRS) -DCPU_SPEED=${F_CLK} -DTIME_SLICE=${TIME_SLICE} \
 		 -DLITTLE_ENDIAN $(CFLAGS_STRIP) -DKERN_VER=\"$(KERNEL_VER)\" \
 		 #-DDEBUG_PORT #-mrvc -fPIC -DDEBUG_PORT -msoft-float -fshort-double
