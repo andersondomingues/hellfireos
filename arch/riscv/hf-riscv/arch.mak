@@ -2,8 +2,8 @@
 ARCH_DIR = $(SRC_DIR)/arch/$(ARCH)
 INC_DIRS  = -I $(ARCH_DIR)/include
 
-F_CLK=25000000
-#F_CLK=2000000
+#F_CLK=25000000
+F_CLK=1000000
 TIME_SLICE=0
 
 #remove unreferenced functions

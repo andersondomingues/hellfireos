@@ -75,7 +75,8 @@ static void clear_tcb(void)
 static void clear_pcb(void)
 {
 	/* setup callbacks for the schedulers */
-	krnl_pcb.sched_rt = sched_rma;
+	//krnl_pcb.sched_rt = sched_rma;
+	krnl_pcb.sched_rt = sched_edf;
 	krnl_pcb.sched_be = sched_priorityrr;
 	/* and clear the process control block */
 	krnl_pcb.coop_cswitch = 0;
